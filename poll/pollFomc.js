@@ -10,11 +10,11 @@ import timezone from 'dayjs/plugin/timezone.js';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const TARGET_URL = 'https://www.federalreserve.gov/monetarypolicy/fomcminutes20250507.htm';
+const TARGET_URL = 'https://www.federalreserve.gov/monetarypolicy/fomcminutes20250618.htm';
 const INTERVAL = 30 * 1000; // 30초마다 요청
 const MAX_ATTEMPTS = 40;    // 최대 20회 시도
 
-const KST_START_TIME = dayjs.tz('2025-07-09 21:40:01', 'Asia/Seoul'); // 시작 시각 (KST)
+const KST_START_TIME = dayjs.tz('2025-07-10 03:00:10', 'Asia/Seoul'); // 시작 시각 (KST)
 
 const userAgents = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
@@ -42,7 +42,17 @@ const pollFomcPage = async () => {
             },
         });
 
+        if (!res.ok) {
+            console.log(`⚠️ HTTP error: ${res.status} ${res.statusText}, 다시 시도합니다.`);
+            return; // 다음 인터벌에 재시도
+        }
+
         const html = await res.text();
+
+        if (html.includes('Page Not Found') || html.includes('404')) {
+            console.log('⚠️ 페이지가 존재하지 않음, 다시 시도합니다.');
+            return;
+        }
 
         if (html.includes('<html')) {
             const conn = await pool.getConnection();
@@ -58,7 +68,7 @@ const pollFomcPage = async () => {
             console.log('✅ HTML 저장 성공, 종료합니다.');
             process.exit(0);
         } else {
-            console.log('⚠️ HTML이 정상적으로 로드되지 않음.');
+            console.log('⚠️ HTML 정상 로드되지 않음.');
         }
     } catch (err) {
         console.error('❌ 요청 실패:', err.message);
@@ -69,7 +79,6 @@ const pollFomcPage = async () => {
         process.exit(1);
     }
 };
-
 // 시작 딜레이 계산
 const now = dayjs();
 const delayMs = KST_START_TIME.diff(now);
