@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+.env
+.DS_Store
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 운영체제 관련
+Thumbs.db
+ehthumbs.db
+
+# IDE 설정 파일
+.vscode/
+.idea/
+
+# 빌드 결과물
+dist/
+build/
+out/
+
+# 기타
+coverage/
